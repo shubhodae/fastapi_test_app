@@ -43,7 +43,7 @@ def login(
 ):
     handler_obj = UserHandler(db=db)
     user = handler_obj.authenticate_user(
-        username=form_data.username,
+        username_or_email=form_data.username,
         password=form_data.password
     )
     access_token_expires = timedelta(minutes=30)

@@ -41,13 +41,14 @@ class UserHandler:
     def __init__(self, db: Session):
         self.db = db
 
+
     def __hash_password(self, password) -> str:
         return PasswordHasher.hash_password(password)
     
 
-    def __get_user_by_username_or_email(self, username: str) -> UserInDBSchema:
+    def __get_user_by_username_or_email(self, username_or_email: str) -> UserInDBSchema:
         user_obj = self.db.query(User).filter(
-            User.username == username,
+            (User.username == username_or_email) | (User.email == username_or_email)
         ).first()
         if not user_obj:
             raise HTTPException(
@@ -70,12 +71,12 @@ class UserHandler:
         return user_obj
 
 
-    def authenticate_user(self, username: str, password: str) -> UserSchema | None:
-        user = self.__get_user_by_username_or_email(username)
+    def authenticate_user(self, username_or_email: str, password: str) -> UserSchema | None:
+        user = self.__get_user_by_username_or_email(username_or_email)
         if not self.verify_password(password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid username or password",
+                detail="Invalid username/email or password",
                 headers={"WWW-Authenticate": "Bearer"}
             )
         if False == user.is_active:
@@ -85,7 +86,7 @@ class UserHandler:
                 headers={"WWW-Authenticate": "Bearer"}
             )
         return user
-    
+
 
     def get_user(self, user_id: int) -> UserSchema:
         user_obj = self.db.query(User).filter(
@@ -98,18 +99,18 @@ class UserHandler:
                 detail="Active user not found"
             )
         return user_obj
-    
+
 
     def update_user(self, user_id: int, user_data: UserUpdateSchema) -> UserInDBSchema:
         user_obj = self.get_user(user_id)
-        user_dict = user_data.dict()
+        user_dict = user_data.dict(exclude_none=True)
         for key, value in user_dict.items():
             setattr(user_obj, key, value)
         self.db.add(user_obj)
         self.db.commit()
         self.db.refresh(user_obj)
         return user_obj
-    
+
 
     def delete_user(self, user_id: int) -> UserInDBSchema:
         user_obj = self.get_user(user_id)
