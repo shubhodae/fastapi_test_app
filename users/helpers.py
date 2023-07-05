@@ -48,7 +48,8 @@ class UserHandler:
 
     def __get_user_by_username_or_email(self, username_or_email: str) -> UserInDBSchema:
         user_obj = self.db.query(User).filter(
-            (User.username == username_or_email) | (User.email == username_or_email)
+            (User.username == username_or_email) | (User.email == username_or_email),
+            User.is_active == True
         ).first()
         if not user_obj:
             raise HTTPException(
@@ -103,7 +104,7 @@ class UserHandler:
 
     def update_user(self, user_id: int, user_data: UserUpdateSchema) -> UserInDBSchema:
         user_obj = self.get_user(user_id)
-        user_dict = user_data.dict(exclude_none=True)
+        user_dict = user_data.dict(exclude_unset=True)
         for key, value in user_dict.items():
             setattr(user_obj, key, value)
         self.db.add(user_obj)

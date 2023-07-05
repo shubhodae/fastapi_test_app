@@ -6,7 +6,6 @@ class UserSchema(BaseModel):
     email: str
     username: str
     phone: str | None = None
-    is_active: bool = True
 
     class Config:
         orm_mode = True
@@ -36,7 +35,6 @@ class UserIDSchema(BaseModel):
 class UserUpdateSchema(BaseModel):
     name: str | None
     phone: str | None
-    is_active: bool | None
 
 
 class Token(BaseModel):
