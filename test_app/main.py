@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 import logging
 
-app = FastAPI()
+app = FastAPI(
+    title="Test App API"
+)
 
 
 # Logger
@@ -22,5 +24,5 @@ app.include_router(items_router)
 @app.get("/")
 async def root():
     return {
-        "message": "Hello World"
+        "message": "Test App API"
     }

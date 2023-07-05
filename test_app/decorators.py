@@ -10,7 +10,7 @@ def exception_handler_decorator(logger=None):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             try:
-                return await func(*args, **kwargs)
+                return func(*args, **kwargs)
             except HTTPException as e:
                 raise e
             except IntegrityError as e:

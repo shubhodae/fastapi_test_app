@@ -1,9 +1,10 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, status, Path
+from fastapi import APIRouter, Body, Depends, Path
 from typing import Annotated
 from sqlalchemy.orm import Session
 
 from test_app.database import get_db
 from test_app.decorators import exception_handler_decorator
+from test_app.dependencies import get_current_user_id
 
 from .schemas import ItemSchema, ItemIDSchema, ItemUpdateSchema
 from .helpers import ItemHandler
@@ -22,7 +23,8 @@ router = APIRouter(
 @exception_handler_decorator(logger)
 def create_item(
     item_data: Annotated[ItemSchema, Body(title="Item to be created")],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[int, Depends(get_current_user_id)]
 ):
     handler_obj = ItemHandler(db)
     item = handler_obj.create(item_data)
@@ -31,7 +33,10 @@ def create_item(
 
 @router.get("/", response_model=list[ItemSchema])
 @exception_handler_decorator(logger)
-def fetch_item_list(db: Annotated[Session, Depends(get_db)]):
+def fetch_item_list(
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[int, Depends(get_current_user_id)]
+):
     handler_obj = ItemHandler(db)
     return handler_obj.get_list()
 
@@ -40,7 +45,8 @@ def fetch_item_list(db: Annotated[Session, Depends(get_db)]):
 @exception_handler_decorator(logger)
 def fetch_item(
     item_id: Annotated[int, Path(title="ID of the item to be fetched")],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[int, Depends(get_current_user_id)]
 ):
     handler_obj = ItemHandler(db)
     item = handler_obj.get(item_id)
@@ -52,7 +58,8 @@ def fetch_item(
 def update_item(
     item_id: Annotated[int, Path(title="ID of the item to be updated")],
     item_data: Annotated[ItemUpdateSchema, Body(title="Item data to be updated")],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[int, Depends(get_current_user_id)]
 ):
     handler_obj = ItemHandler(db)
     item = handler_obj.update(item_id, item_data)
@@ -63,7 +70,8 @@ def update_item(
 @exception_handler_decorator(logger)
 def delete_item(
     item_id: Annotated[int, Path(title="ID of the item to be deleted")],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    user_id: Annotated[int, Depends(get_current_user_id)]
 ):
     handler_obj = ItemHandler(db)
     handler_obj.delete(item_id)
