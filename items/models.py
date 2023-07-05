@@ -10,7 +10,7 @@ from datetime import datetime
 class ItemType(str, enum.Enum):
     type_1 = "Type 1"
     type_2 = "Type 2"
-    type_3 = "type_3"
+    type_3 = "Type 3"
 
 
 class Item(Base):

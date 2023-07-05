@@ -10,12 +10,16 @@ logger = logging.getLogger(__name__)
 
 class ItemHandler:
 
-    def __init__(self, db: Session) -> None:
+    def __init__(self, db: Session, user_id: int) -> None:
         self.db = db
+        self.user_id = user_id
+
 
     def __fetch_item(self, item_id) -> Item:
         item = self.db.query(Item).filter(
-            Item.id == item_id
+            Item.id == item_id,
+            Item.owner_id == self.user_id,
+            Item.is_active == True
         ).first()
         if not item:
             raise HTTPException(
@@ -24,21 +28,28 @@ class ItemHandler:
             )
         return item
 
+
     def create(self, item_data: ItemSchema) -> Item:
-        item_obj = Item(**item_data.dict())
+        item_obj = Item(**item_data.dict(), owner_id=self.user_id)
         self.db.add(item_obj)
         self.db.commit()
         self.db.refresh(item_obj)
         return item_obj
-    
+
+
     def get_list(self) -> list[Item]:
-        item_query = self.db.query(Item).all()
+        item_query = self.db.query(Item).filter(
+            Item.owner_id == self.user_id,
+            Item.is_active == True
+        ).all()
         item_list = [item for item in item_query]
         return item_list
-    
+
+
     def get(self, item_id) -> Item:
         return self.__fetch_item(item_id)
-    
+
+
     def update(self, item_id, item_data: ItemUpdateSchema) -> Item:
         item_obj = self.__fetch_item(item_id)
         item_dict = item_data.dict(exclude_unset=True)
@@ -50,9 +61,11 @@ class ItemHandler:
         self.db.commit()
         self.db.refresh(item_obj)
         return item_obj
-    
+
+
     def delete(self, item_id) -> int:
         item_obj = self.__fetch_item(item_id)
-        self.db.delete(item_obj)
+        item_obj.is_active = False
+        self.db.add(item_obj)
         self.db.commit()
         return item_id

@@ -26,7 +26,7 @@ def create_item(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
-    handler_obj = ItemHandler(db)
+    handler_obj = ItemHandler(db=db, user_id=user_id)
     item = handler_obj.create(item_data)
     return item
 
@@ -37,7 +37,7 @@ def fetch_item_list(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
-    handler_obj = ItemHandler(db)
+    handler_obj = ItemHandler(db=db, user_id=user_id)
     return handler_obj.get_list()
 
 
@@ -48,7 +48,7 @@ def fetch_item(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
-    handler_obj = ItemHandler(db)
+    handler_obj = ItemHandler(db=db, user_id=user_id)
     item = handler_obj.get(item_id)
     return item
 
@@ -61,7 +61,7 @@ def update_item(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
-    handler_obj = ItemHandler(db)
+    handler_obj = ItemHandler(db=db, user_id=user_id)
     item = handler_obj.update(item_id, item_data)
     return item
 
@@ -73,6 +73,6 @@ def delete_item(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
-    handler_obj = ItemHandler(db)
+    handler_obj = ItemHandler(db=db, user_id=user_id)
     handler_obj.delete(item_id)
     return ItemIDSchema(id=item_id)
