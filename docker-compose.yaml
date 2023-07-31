@@ -11,6 +11,7 @@ services:
     ports:
       - 5432:5432
     environment:
+      - POSTGRES_DB=test_db
       - PGDATA=/var/lib/postgresql/data/pgdata
       - POSTGRES_PASSWORD=tiger
 
@@ -22,6 +23,9 @@ services:
       - 8000:8000
     volumes:
       - ./:/app
-    command: bash -c "alembic upgrade head && uvicorn test_app.main:app --host 0.0.0.0 --port 8000 --reload"
+    # command: bash -c "alembic upgrade head && uvicorn test_app.main:app --host 0.0.0.0 --port 8000 --reload"
+    stdin_open: true
+    tty: true
+    command: ["/bin/bash"]
     depends_on:
       - db
