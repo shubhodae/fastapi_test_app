@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Body, Depends
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from sqlalchemy.orm import Session
 
 from test_app.database import get_db
-from test_app.decorators import exception_handler_decorator
+# from test_app.decorators import exception_handler_decorator
 from test_app.dependencies import get_current_user_id
 
 from .schemas import UserSchema, UserIDSchema,\
@@ -24,36 +24,57 @@ router = APIRouter(
 
 
 @router.post("/signup", response_model=UserIDSchema)
-@exception_handler_decorator(logger)
+# @exception_handler_decorator(logger)
 def signup(
     user_data: Annotated[UserWithPasswordSchema, Body()],
     db: Session = Depends(get_db)
 ):
     handler_obj = UserHandler(db=db)
-    user = handler_obj.create_user(user_data)
+    try:
+        user = handler_obj.create_user(user_data)
+    except Exception as e:
+        logger.error(f"Error in user creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to create user"
+        )
     logger.info(f"user created: {user.email}")
     return UserIDSchema(id=user.id)
 
 
 @router.post("/login", response_model=Token)
-@exception_handler_decorator(logger)
+# @exception_handler_decorator(logger)
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)]
 ):
     handler_obj = UserHandler(db=db)
-    user = handler_obj.authenticate_user(
-        username_or_email=form_data.username,
-        password=form_data.password
-    )
+    try:
+        user = handler_obj.authenticate_user(
+            username_or_email=form_data.username,
+            password=form_data.password
+        )
+    except Exception as e:
+        logger.error(f"Uable to authenticate user: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to authenticate user"
+        )
     access_token_expires = timedelta(minutes=30)
-    access_token = create_access_token(
-        data={
-            "sub": user.username,
-            "id": user.id
-        },
-        expires_delta=access_token_expires
-    )
+    try:
+        access_token = create_access_token(
+            data={
+                "sub": user.username,
+                "id": user.id
+            },
+            expires_delta=access_token_expires
+        )
+    except Exception as e:
+        logger.exception(f"Unable to create access_token: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to create access_token"
+        )
     return Token(
         access_token=access_token,
         token_type="bearer"
