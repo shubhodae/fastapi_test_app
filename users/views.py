@@ -2,6 +2,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from test_app.database import get_db
 # from test_app.decorators import exception_handler_decorator
@@ -32,8 +33,14 @@ def signup(
     handler_obj = UserHandler(db=db)
     try:
         user = handler_obj.create_user(user_data)
+    except IntegrityError as e:
+        logger.exception(f"IntegrityError: Error in user creation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"ERROR: Conflict: data already exists"
+        )
     except Exception as e:
-        logger.error(f"Error in user creation: {e}")
+        logger.exception(f"Error in user creation: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to create user"
@@ -55,10 +62,10 @@ def login(
             password=form_data.password
         )
     except Exception as e:
-        logger.error(f"Uable to authenticate user: {e}")
+        logger.exception(f"Uable to authenticate user: {e}")
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Unable to authenticate user"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
         )
     access_token_expires = timedelta(minutes=30)
     try:
