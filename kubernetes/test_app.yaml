@@ -33,4 +33,7 @@ spec:
         command: ["/bin/bash", "-c", "alembic upgrade head && uvicorn test_app.main:app --host 0.0.0.0 --port 8000 --reload"]
         env:
           - name: SQLALCHEMY_DATABASE_URL
-            value: postgresql://postgres:tiger@postgres-service.default/test_db
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: SQLALCHEMY_DATABASE_URL

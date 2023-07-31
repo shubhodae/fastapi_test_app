@@ -63,11 +63,17 @@ spec:
         image: postgres:15.3-alpine3.18
         env:
           - name: POSTGRES_DB
-            value: test_db
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_DB
           - name: PGDATA
             value: /var/lib/postgresql/data/pgdata
           - name: POSTGRES_PASSWORD
-            value: tiger
+            valueFrom:
+              secretKeyRef:
+                name: postgres-secret
+                key: POSTGRES_PASSWORD
         volumeMounts:
           - mountPath: "/var/lib/postgresql/data/pgdata"
             name: postgres-pv-storage
