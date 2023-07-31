@@ -1,4 +1,32 @@
 apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pv-claim
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-volume
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  # Need to use CSI for AWS deployment
+  hostPath:
+    path: "/home/subhadip/Experiments/test_app/data"
+---
+apiVersion: v1
 kind: Service
 metadata:
   name: postgres-service
@@ -26,6 +54,10 @@ spec:
       labels:
         app: postgres
     spec:
+      volumes:
+        - name: postgres-pv-storage
+          persistentVolumeClaim:
+            claimName: postgres-pv-claim
       containers:
       - name: postgres
         image: postgres:15.3-alpine3.18
@@ -36,3 +68,6 @@ spec:
             value: /var/lib/postgresql/data/pgdata
           - name: POSTGRES_PASSWORD
             value: tiger
+        volumeMounts:
+          - mountPath: "/var/lib/postgresql/data/pgdata"
+            name: postgres-pv-storage
