@@ -19,6 +19,10 @@ class ItemIDSchema(BaseModel):
         orm_mode = True
 
 
+class ItemSchemaWithID(ItemSchema, ItemIDSchema):
+    pass
+
+
 class ItemUpdateSchema(BaseModel):
     name: str | None
     category: str | None

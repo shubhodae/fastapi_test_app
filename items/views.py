@@ -6,7 +6,7 @@ from test_app.database import get_db
 # from test_app.decorators import exception_handler_decorator
 from test_app.dependencies import get_current_user_id
 
-from .schemas import ItemSchema, ItemIDSchema, ItemUpdateSchema
+from .schemas import ItemSchema, ItemIDSchema, ItemUpdateSchema, ItemSchemaWithID
 from .helpers import ItemHandler
 
 import logging
@@ -31,7 +31,7 @@ def create_item(
     return item
 
 
-@router.get("/", response_model=list[ItemSchema])
+@router.get("/", response_model=list[ItemSchemaWithID])
 # @exception_handler_decorator(logger)
 def fetch_item_list(
     db: Annotated[Session, Depends(get_db)],
