@@ -4,7 +4,7 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
-from test_app.settings import Settings
+from test_app.settings import AppSettings
 from test_app.database import get_db
 # from test_app.decorators import exception_handler_decorator
 from test_app.dependencies import get_current_user_id, get_settings
@@ -55,7 +55,7 @@ def signup(
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[AppSettings, Depends(get_settings)]
 ):
     handler_obj = UserHandler(db=db)
     try:

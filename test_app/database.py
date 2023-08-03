@@ -3,12 +3,12 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 # from .settings import SQLALCHEMY_DATABASE_URL
-from .dependencies import get_settings
+from .settings import DatabaseSettings
 
 # SQLALCHEMY_DATABASE_URL = "postgresql://postgres:tiger@db/test_db"
 
-settings = get_settings()
-engine = create_engine(settings.pg_dsn)
+db_settings = DatabaseSettings()
+engine = create_engine(db_settings.SQLALCHEMY_DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 

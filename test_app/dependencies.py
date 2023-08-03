@@ -6,8 +6,7 @@ from typing import Annotated
 
 from jose import jwt
 
-# from .settings import SECRET_KEY, ALGORITHM
-from .settings import Settings
+from .settings import AppSettings
 
 import logging
 logger = logging.getLogger(__name__)
@@ -15,14 +14,14 @@ logger = logging.getLogger(__name__)
 
 @lru_cache
 def get_settings():
-    return Settings()
+    return AppSettings()
 
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="users/login")
 
 async def get_current_user_id(
     token: Annotated[str, Depends(oauth2_scheme)],
-    settings: Annotated[Settings, Depends(get_settings)]
+    settings: Annotated[AppSettings, Depends(get_settings)]
 ) -> int:
     payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
     # logger.debug(f"Token payload: {payload}")
