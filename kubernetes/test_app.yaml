@@ -32,6 +32,21 @@ spec:
         image: shubhadip45/fastapi-test-app:latest
         command: ["/bin/bash", "-c", "alembic upgrade head && uvicorn test_app.main:app --host 0.0.0.0 --port 8000 --reload"]
         env:
+          - name: SECRET_KEY
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: SECRET_KEY
+          - name: ALGORITHM
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: ALGORITHM
+          - name: ACCESS_TOKEN_EXPIRE_MINUTES
+            valueFrom:
+              secretKeyRef:
+                name: app-secret
+                key: ACCESS_TOKEN_EXPIRE_MINUTES
           - name: SQLALCHEMY_DATABASE_URL
             valueFrom:
               secretKeyRef:
