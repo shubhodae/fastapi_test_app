@@ -3,7 +3,9 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from passlib.context import CryptContext
 
-from test_app.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+# from test_app.settings import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from test_app.settings import Settings
+# from test_app.dependencies import get_settings
 from .models import User
 from .schemas import UserInDBSchema, UserSchema, UserUpdateSchema
 
@@ -122,14 +124,15 @@ class UserHandler:
         return user_obj
 
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None):
+def create_access_token(settings: Settings, data: dict, expires_delta: timedelta | None = None):
+    # settings = get_settings()
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=15)
+        expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({
         "exp": expire
     })
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt

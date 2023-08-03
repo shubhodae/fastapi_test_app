@@ -4,9 +4,10 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
+from test_app.settings import Settings
 from test_app.database import get_db
 # from test_app.decorators import exception_handler_decorator
-from test_app.dependencies import get_current_user_id
+from test_app.dependencies import get_current_user_id, get_settings
 
 from .schemas import UserSchema, UserIDSchema,\
     Token, UserUpdateSchema, UserWithPasswordSchema
@@ -53,7 +54,8 @@ def signup(
 # @exception_handler_decorator(logger)
 def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[Session, Depends(get_db)],
+    settings: Annotated[Settings, Depends(get_settings)]
 ):
     handler_obj = UserHandler(db=db)
     try:
@@ -70,6 +72,7 @@ def login(
     access_token_expires = timedelta(minutes=30)
     try:
         access_token = create_access_token(
+            settings=settings,
             data={
                 "sub": user.username,
                 "id": user.id
