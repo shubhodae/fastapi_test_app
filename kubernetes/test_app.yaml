@@ -32,6 +32,11 @@ spec:
         image: shubhadip45/fastapi-test-app:latest
         command: ["/bin/bash", "-c", "alembic upgrade head && uvicorn test_app.main:app --host 0.0.0.0 --port 8000 --reload"]
         env:
+          - name: ENVIRONMENT
+              valueFrom:
+                secretKeyRef:
+                  name: app-secret
+                  key: ENVIRONMENT
           - name: SECRET_KEY
             valueFrom:
               secretKeyRef:

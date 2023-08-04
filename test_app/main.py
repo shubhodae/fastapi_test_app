@@ -11,7 +11,7 @@ app_configs["title"] = "Test App API"
 
 # Show documentation only in 'local' and 'staging'
 SHOW_DOCS_ENVIRONMENT = ("local", "staging")
-if environement not in SHOW_DOCS_ENVIRONMENT:
+if environement.lower() not in SHOW_DOCS_ENVIRONMENT:
     app_configs["openapi_url"] = None
 
 app = FastAPI(**app_configs)
