@@ -1,11 +1,11 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 
 
 class UserSchema(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
     email: EmailStr
-    username: str
-    phone: str | None = None
+    username: str = Field(min_length=1, max_length=128)
+    phone: str | None = Field(min_length=1, max_length=15, default=None)
 
     class Config:
         orm_mode = True
@@ -33,8 +33,8 @@ class UserIDSchema(BaseModel):
 
 
 class UserUpdateSchema(BaseModel):
-    name: str | None
-    phone: str | None
+    name: str | None = Field(min_length=1, max_length=128, default=None)
+    phone: str | None = Field(min_length=1, max_length=15, default=None)
 
 
 class Token(BaseModel):

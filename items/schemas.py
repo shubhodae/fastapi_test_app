@@ -1,10 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .models import ItemType
 
 
 class ItemSchema(BaseModel):
-    name: str
+    name: str = Field(min_length=1, max_length=128)
     category: str | None = None
     item_type: ItemType = ItemType.type_1
 
@@ -24,7 +24,7 @@ class ItemSchemaWithID(ItemSchema, ItemIDSchema):
 
 
 class ItemUpdateSchema(BaseModel):
-    name: str | None
+    name: str | None = Field(min_length=1, max_length=128, default=None)
     category: str | None
     item_type: ItemType | None
 
