@@ -1,9 +1,20 @@
 from fastapi import FastAPI
 import logging
 
-app = FastAPI(
-    title="Test App API"
-)
+from .settings import AppSettings
+environement = AppSettings().ENVIRONMENT
+
+
+# App configs
+app_configs = dict()
+app_configs["title"] = "Test App API"
+
+# Show documentation only in 'local' and 'staging'
+SHOW_DOCS_ENVIRONMENT = ("local", "staging")
+if environement not in SHOW_DOCS_ENVIRONMENT:
+    app_configs["openapi_url"] = None
+
+app = FastAPI(**app_configs)
 
 
 # Logger
