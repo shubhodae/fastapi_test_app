@@ -1,11 +1,11 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, Column, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# from .settings import SQLALCHEMY_DATABASE_URL
+from datetime import datetime
+
 from .settings import DatabaseSettings
 
-# SQLALCHEMY_DATABASE_URL = "postgresql://postgres:tiger@db/test_db"
 
 db_settings = DatabaseSettings()
 engine = create_engine(db_settings.SQLALCHEMY_DATABASE_URL)
@@ -20,3 +20,10 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+
+class BaseModel:
+    id = Column(Integer, primary_key=True, index=True)
+    created_on = Column(DateTime, default=datetime.now)
+    modified_on = Column(DateTime, default=datetime.now, onupdate=datetime.now)

@@ -1,24 +1,19 @@
-from test_app.database import Base
+from test_app.database import Base, BaseModel
 
-from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy import Boolean, Column, Integer, String
 from sqlalchemy.orm import relationship
 
-from datetime import datetime
 
 
-
-class User(Base):
+class User(Base, BaseModel):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True, nullable=False)
     email = Column(String, index=True, unique=True, nullable=False)
     username = Column(String, index=True, unique=True, nullable=False)
     password = Column(String, nullable=False)
     phone = Column(String, index=True, unique=True)
     is_active = Column(Boolean, default=True)
-    created_on = Column(DateTime, default=datetime.now)
-    modified_on = Column(DateTime, default=datetime.now, onupdate=datetime.now)
 
     items = relationship("Item", back_populates="owner")
 
