@@ -36,17 +36,10 @@ class PasswordHasher:
         return context.verify(plain_password, hashed_password)
 
 
-
-class UserHandler:
-
+class UserAuthenticator:
 
     def __init__(self, db: Session):
         self.db = db
-
-
-    def __hash_password(self, password) -> str:
-        return PasswordHasher.hash_password(password)
-    
 
     def __get_user_by_username_or_email(self, username_or_email: str) -> UserInDBSchema:
         user_obj = self.db.query(User).filter(
@@ -60,19 +53,8 @@ class UserHandler:
             )
         return user_obj
 
-
     def verify_password(self, password, hashed_password) -> bool:
         return PasswordHasher.verify_password(password, hashed_password)
-
-
-    def create_user(self, user: UserInDBSchema) -> UserSchema:
-        user.password = self.__hash_password(user.password)
-        user_obj = User(**user.dict())
-        self.db.add(user_obj)
-        self.db.commit()
-        self.db.refresh(user_obj)
-        return user_obj
-
 
     def authenticate_user(self, username_or_email: str, password: str) -> UserSchema | None:
         user = self.__get_user_by_username_or_email(username_or_email)
@@ -89,6 +71,27 @@ class UserHandler:
                 headers={"WWW-Authenticate": "Bearer"}
             )
         return user
+
+
+
+class UserHandler:
+
+
+    def __init__(self, db: Session):
+        self.db = db
+
+
+    def __hash_password(self, password) -> str:
+        return PasswordHasher.hash_password(password)
+
+
+    def create_user(self, user: UserInDBSchema) -> UserSchema:
+        user.password = self.__hash_password(user.password)
+        user_obj = User(**user.dict())
+        self.db.add(user_obj)
+        self.db.commit()
+        self.db.refresh(user_obj)
+        return user_obj
 
 
     def get_user(self, user_id: int) -> UserSchema:

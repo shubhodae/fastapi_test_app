@@ -11,7 +11,7 @@ from test_app.dependencies import get_current_user_id, get_settings
 
 from .schemas import UserSchema, UserIDSchema,\
     Token, UserUpdateSchema, UserWithPasswordSchema
-from .helpers import UserHandler, create_access_token
+from .helpers import UserHandler, create_access_token, UserAuthenticator
 
 from datetime import timedelta
 
@@ -59,7 +59,7 @@ def login(
 ):
     handler_obj = UserHandler(db=db)
     try:
-        user = handler_obj.authenticate_user(
+        user = UserAuthenticator(db=db).authenticate_user(
             username_or_email=form_data.username,
             password=form_data.password
         )
