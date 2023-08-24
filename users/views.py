@@ -33,7 +33,7 @@ def signup(
 ):
     handler_obj = UserHandler(db=db)
     try:
-        user = handler_obj.create_user(user_data)
+        user = handler_obj.create(user_data)
     except IntegrityError as e:
         logger.exception(f"IntegrityError: Error in user creation: {e}")
         raise HTTPException(
@@ -97,7 +97,7 @@ async def get_user(
     db: Annotated[Session, Depends(get_db)]
 ):
     handler_obj = UserHandler(db=db)
-    user = handler_obj.get_user(user_id)
+    user = handler_obj.get(user_id)
     return user
 
 
@@ -108,7 +108,7 @@ async def update_user(
     user_data: Annotated[UserUpdateSchema, Body(embed=True, title="user data to be updated")]
 ):
     handler_obj = UserHandler(db=db)
-    user = handler_obj.update_user(user_id, user_data)
+    user = handler_obj.update(user_id, user_data)
     return user
 
 
@@ -118,5 +118,5 @@ async def delete_user(
     user_id: Annotated[int, Depends(get_current_user_id)],
 ):
     handler_obj = UserHandler(db=db)
-    user = handler_obj.delete_user(user_id=user_id)
+    user = handler_obj.delete(user_id=user_id)
     return user

@@ -1,14 +1,16 @@
 from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
+from test_app.helpers import ModelHandler
+
 from .models import Item
-from .schemas import ItemSchema, ItemUpdateSchema
+from .schemas import ItemSchema, ItemUpdateSchema, ItemIDSchema
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-class ItemHandler:
+class ItemHandler(ModelHandler):
 
     def __init__(self, db: Session, user_id: int) -> None:
         self.db = db
@@ -37,7 +39,7 @@ class ItemHandler:
         return item_obj
 
 
-    def get_list(self) -> list[Item]:
+    def list(self) -> list[Item]:
         item_query = self.db.query(Item).filter(
             Item.owner_id == self.user_id,
             Item.is_active == True
@@ -63,9 +65,9 @@ class ItemHandler:
         return item_obj
 
 
-    def delete(self, item_id) -> int:
+    def delete(self, item_id) -> ItemIDSchema:
         item_obj = self.__fetch_item(item_id)
         item_obj.is_active = False
         self.db.add(item_obj)
         self.db.commit()
-        return item_id
+        return item_obj
