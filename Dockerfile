@@ -1,6 +1,8 @@
 FROM python:3.10.11-slim-bullseye
 ENV PYTHONDONTWRITEBYTECODE 1
 
+RUN apt install update && apt install upgrade -y
+
 WORKDIR /app
 
 COPY requirements.txt .
