@@ -26,8 +26,7 @@ router = APIRouter(
 
 
 @router.post("/signup", response_model=UserIDSchema)
-# @exception_handler_decorator(logger)
-def signup(
+async def signup(
     user_data: Annotated[UserWithPasswordSchema, Body()],
     db: Session = Depends(get_db)
 ):
@@ -51,8 +50,7 @@ def signup(
 
 
 @router.post("/login", response_model=Token)
-# @exception_handler_decorator(logger)
-def login(
+async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: Annotated[Session, Depends(get_db)],
     settings: Annotated[AppSettings, Depends(get_settings)]

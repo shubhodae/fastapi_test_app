@@ -20,7 +20,7 @@ router = APIRouter(
 
 
 @router.post("/", response_model=ItemIDSchema)
-def create_item(
+async def create_item(
     item_data: Annotated[ItemSchema, Body(title="Item to be created")],
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
@@ -31,7 +31,7 @@ def create_item(
 
 
 @router.get("/", response_model=list[ItemSchemaWithID])
-def fetch_item_list(
+async def fetch_item_list(
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
@@ -40,7 +40,7 @@ def fetch_item_list(
 
 
 @router.get("/{item_id}", response_model=ItemSchema)
-def fetch_item(
+async def fetch_item(
     item_id: Annotated[int, Path(title="ID of the item to be fetched")],
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
@@ -51,7 +51,7 @@ def fetch_item(
 
 
 @router.put("/{item_id}", response_model=ItemIDSchema)
-def update_item(
+async def update_item(
     item_id: Annotated[int, Path(title="ID of the item to be updated")],
     item_data: Annotated[ItemUpdateSchema, Body(title="Item data to be updated")],
     db: Annotated[Session, Depends(get_db)],
@@ -63,11 +63,11 @@ def update_item(
 
 
 @router.delete("/{item_id}", response_model=ItemIDSchema)
-def delete_item(
+async def delete_item(
     item_id: Annotated[int, Path(title="ID of the item to be deleted")],
     db: Annotated[Session, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)]
 ):
     handler_obj = ItemHandler(db=db, user_id=user_id)
-    handler_obj.delete(item_id)
-    return ItemIDSchema
+    deleted_item = handler_obj.delete(item_id)
+    return deleted_item

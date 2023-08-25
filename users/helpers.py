@@ -115,7 +115,7 @@ class UserHandler(ModelHandler):
 
 
     def update(self, user_id: int, user_data: UserUpdateSchema) -> UserInDBSchema:
-        user_obj = self.get_user(user_id)
+        user_obj = self.get(user_id)
         user_dict = user_data.dict(exclude_unset=True)
         for key, value in user_dict.items():
             setattr(user_obj, key, value)
@@ -126,7 +126,7 @@ class UserHandler(ModelHandler):
 
 
     def delete(self, user_id: int) -> UserInDBSchema:
-        user_obj = self.get_user(user_id)
+        user_obj = self.get(user_id)
         user_obj.is_active = False
         self.db.add(user_obj)
         self.db.commit()
