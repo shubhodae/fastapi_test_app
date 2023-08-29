@@ -57,7 +57,7 @@ class UserAuthenticator:
     def verify_password(self, password, hashed_password) -> bool:
         return PasswordHasher.verify_password(password, hashed_password)
 
-    def authenticate_user(self, username_or_email: str, password: str) -> UserSchema | None:
+    async def authenticate_user(self, username_or_email: str, password: str) -> UserSchema | None:
         user = self.__get_user_by_username_or_email(username_or_email)
         if not self.verify_password(password, user.password):
             raise HTTPException(
@@ -85,7 +85,7 @@ class UserHandler(ModelHandler):
         return PasswordHasher.hash_password(password)
 
 
-    def create(self, user: UserInDBSchema) -> UserSchema:
+    async def create(self, user: UserInDBSchema) -> UserSchema:
         user.password = self.__hash_password(user.password)
         user_obj = User(**user.dict())
         self.db.add(user_obj)
@@ -94,7 +94,7 @@ class UserHandler(ModelHandler):
         return user_obj
 
 
-    def get(self, user_id: int) -> UserSchema:
+    async def get(self, user_id: int) -> UserSchema:
         user_obj = self.db.query(User).filter(
             User.id == user_id,
             User.is_active == True
@@ -107,15 +107,15 @@ class UserHandler(ModelHandler):
         return user_obj
 
 
-    def list(self) -> List[UserSchema]:
+    async def list(self) -> List[UserSchema]:
         user_list = self.db.query(User).filter(
             User.is_active == True
         )
         return user_list
 
 
-    def update(self, user_id: int, user_data: UserUpdateSchema) -> UserInDBSchema:
-        user_obj = self.get(user_id)
+    async def update(self, user_id: int, user_data: UserUpdateSchema) -> UserInDBSchema:
+        user_obj = await self.get(user_id)
         user_dict = user_data.dict(exclude_unset=True)
         for key, value in user_dict.items():
             setattr(user_obj, key, value)
@@ -125,8 +125,8 @@ class UserHandler(ModelHandler):
         return user_obj
 
 
-    def delete(self, user_id: int) -> UserInDBSchema:
-        user_obj = self.get(user_id)
+    async def delete(self, user_id: int) -> UserInDBSchema:
+        user_obj = await self.get(user_id)
         user_obj.is_active = False
         self.db.add(user_obj)
         self.db.commit()
