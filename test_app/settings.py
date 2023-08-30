@@ -9,4 +9,4 @@ class AppSettings(BaseSettings):
 
 
 class DatabaseSettings(BaseSettings):
-    SQLALCHEMY_DATABASE_URL: PostgresDsn = "postgresql://postgres:tiger@db/test_db"
+    SQLALCHEMY_DATABASE_URL: PostgresDsn = "postgresql+asyncpg://postgres:tiger@db/test_db"

@@ -1,6 +1,6 @@
-from sqlalchemy import create_engine, Column, Integer, DateTime
+from sqlalchemy import Column, Integer, DateTime
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from datetime import datetime
 
@@ -8,9 +8,9 @@ from .settings import DatabaseSettings
 
 
 db_settings = DatabaseSettings()
-engine = create_engine(db_settings.SQLALCHEMY_DATABASE_URL)
+engine = create_async_engine(db_settings.SQLALCHEMY_DATABASE_URL)
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = async_sessionmaker(autoflush=False, bind=engine)
 
 Base = declarative_base()
 
@@ -19,7 +19,7 @@ async def get_db():
     try:
         yield db
     finally:
-        db.close()
+        await db.close()
 
 
 

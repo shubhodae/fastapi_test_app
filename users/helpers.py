@@ -2,13 +2,14 @@ from typing import List
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 from passlib.context import CryptContext
 
 from test_app.settings import AppSettings
 from test_app.helpers import ModelHandler
 from .models import User
-from .schemas import UserInDBSchema, UserSchema, UserUpdateSchema
+from .schemas import UserInDBSchema, UserSchema, UserUpdateSchema, UserIDSchema
 
 from jose import jwt
 from datetime import datetime, timedelta
@@ -39,14 +40,17 @@ class PasswordHasher:
 
 class UserAuthenticator:
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
-    def __get_user_by_username_or_email(self, username_or_email: str) -> UserInDBSchema:
-        user_obj = self.db.query(User).filter(
-            (User.username == username_or_email) | (User.email == username_or_email),
-            User.is_active == True
-        ).first()
+    async def __get_user_by_username_or_email(self, username_or_email: str) -> UserInDBSchema:
+        query = await self.db.execute(
+            select(User).filter(
+                (User.username == username_or_email) | (User.email == username_or_email),
+                User.is_active == True
+            )
+        )
+        user_obj = query.scalar_one_or_none()
         if not user_obj:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -58,7 +62,7 @@ class UserAuthenticator:
         return PasswordHasher.verify_password(password, hashed_password)
 
     async def authenticate_user(self, username_or_email: str, password: str) -> UserSchema | None:
-        user = self.__get_user_by_username_or_email(username_or_email)
+        user = await self.__get_user_by_username_or_email(username_or_email)
         if not self.verify_password(password, user.password):
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
@@ -77,7 +81,7 @@ class UserAuthenticator:
 
 class UserHandler(ModelHandler):
 
-    def __init__(self, db: Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
 
@@ -89,16 +93,19 @@ class UserHandler(ModelHandler):
         user.password = self.__hash_password(user.password)
         user_obj = User(**user.dict())
         self.db.add(user_obj)
-        self.db.commit()
-        self.db.refresh(user_obj)
+        await self.db.commit()
+        await self.db.refresh(user_obj)
         return user_obj
 
 
     async def get(self, user_id: int) -> UserSchema:
-        user_obj = self.db.query(User).filter(
-            User.id == user_id,
-            User.is_active == True
-        ).first()
+        query = await self.db.execute(
+            select(User).filter(
+                User.id == user_id,
+                User.is_active == True
+            )
+        )
+        user_obj = query.scalar_one_or_none()
         if user_obj is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -108,9 +115,12 @@ class UserHandler(ModelHandler):
 
 
     async def list(self) -> List[UserSchema]:
-        user_list = self.db.query(User).filter(
-            User.is_active == True
+        query = await self.db.execute(
+            select(User).filter(
+                User.is_active == True
+            )
         )
+        user_list = query.scalars().all()
         return user_list
 
 
@@ -120,8 +130,8 @@ class UserHandler(ModelHandler):
         for key, value in user_dict.items():
             setattr(user_obj, key, value)
         self.db.add(user_obj)
-        self.db.commit()
-        self.db.refresh(user_obj)
+        await self.db.commit()
+        await self.db.refresh(user_obj)
         return user_obj
 
 
@@ -129,8 +139,8 @@ class UserHandler(ModelHandler):
         user_obj = await self.get(user_id)
         user_obj.is_active = False
         self.db.add(user_obj)
-        self.db.commit()
-        self.db.refresh(user_obj)
+        await self.db.commit()
+        await self.db.refresh(user_obj)
         return user_obj
 
 

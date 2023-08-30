@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Annotated
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
 from test_app.settings import AppSettings
@@ -28,7 +28,7 @@ router = APIRouter(
 @router.post("/signup", response_model=UserIDSchema)
 async def signup(
     user_data: Annotated[UserWithPasswordSchema, Body()],
-    db: Session = Depends(get_db)
+    db: AsyncSession = Depends(get_db)
 ):
     handler_obj = UserHandler(db=db)
     try:
@@ -46,16 +46,15 @@ async def signup(
             detail="Unable to create user"
         )
     logger.info(f"user created: {user.email}")
-    return UserIDSchema(id=user.id)
+    return user
 
 
 @router.post("/login", response_model=Token)
 async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     settings: Annotated[AppSettings, Depends(get_settings)]
 ):
-    handler_obj = UserHandler(db=db)
     try:
         user = await UserAuthenticator(db=db).authenticate_user(
             username_or_email=form_data.username,
@@ -92,7 +91,7 @@ async def login(
 @router.get("/", response_model=UserSchema)
 async def get_user(
     user_id: Annotated[int, Depends(get_current_user_id)],
-    db: Annotated[Session, Depends(get_db)]
+    db: Annotated[AsyncSession, Depends(get_db)]
 ):
     handler_obj = UserHandler(db=db)
     user = await handler_obj.get(user_id)
@@ -101,7 +100,7 @@ async def get_user(
 
 @router.put("/", response_model=UserIDSchema)
 async def update_user(
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)],
     user_data: Annotated[UserUpdateSchema, Body(embed=True, title="user data to be updated")]
 ):
@@ -112,7 +111,7 @@ async def update_user(
 
 @router.delete("/", response_model=UserIDSchema)
 async def delete_user(
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[AsyncSession, Depends(get_db)],
     user_id: Annotated[int, Depends(get_current_user_id)],
 ):
     handler_obj = UserHandler(db=db)
